@@ -6,6 +6,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -197,4 +198,52 @@ public class OrderController {
 		//이미지를 바이트 배열로 읽어오는 작업
 		return UploadFileUtils.getFile(uploadPath, folderName + "\\" + fileName);
 	}
+	
+	
+	
+	@ResponseBody
+	@GetMapping("/orderCheck")
+	public ResponseEntity<String> orderCheck(@RequestParam("mem_id") String mem_id){
+		
+		ResponseEntity<String> entity = null;
+		
+		
+		String isUseCart = "yes";
+		List<CartVOList> cartList = cartService.cart_list(mem_id);
+		
+
+		log.info("cartList : " + cartList);
+		
+		if(cartList.isEmpty()) {
+			isUseCart = "no"; // cartlist 데이터 확인
+		}
+		
+		log.info(isUseCart);
+		
+		entity = new ResponseEntity<String>(isUseCart, HttpStatus.OK);
+		
+		return entity;
+	}
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 }

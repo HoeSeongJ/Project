@@ -22,7 +22,7 @@
 		<property name="driverClassName" value="net.sf.log4jdbc.sql.jdbcapi.DriverSpy" />
 		<property name="jdbcUrl" value="jdbc:log4jdbc:oracle:thin:@localhost:1521:xe"></property>
 		<property name="username" value="spring"></property>
-		<property name="password" value="spring"></property>
+		<property name="password" value="SPRING"></property>
 	</bean>	
 	
 	<bean id="dataSource" class="com.zaxxer.hikari.HikariDataSource" destroy-method="close">
@@ -54,8 +54,8 @@
 	<bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
 	  <property name="host" value="smtp.gmail.com" />
 	  <property name="port" value="587" />
-	  <property name="username" value="메일주소" />
-	<property name="password" value="인증키" />
+	  <property name="username" value="hasung715@gmail.com" />
+	<property name="password" value="crsvwbpfuwxtddkc" />
 	  <property name="javaMailProperties">
 	  <props>
 	    <prop key="mail.smtp.auth">true</prop>

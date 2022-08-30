@@ -83,7 +83,7 @@
 		    <label class="col-sm-3 col-form-label" style="display:none;" id="NickCheckStatus">중복체크결과</label>
 		  </div>
 		  <div class="form-group row">
-		    <label for="mem_email" class="col-sm-2 col-form-label">Email</label>
+		    <label for="mem_email" class="col-sm-2 col-form-label">이메일주소</label>
 		    <div class="col-sm-4">
 		      <input type="text" class="form-control" id="mem_email" name="mem_email">
 		    </div>
@@ -103,7 +103,7 @@
 		  <div class="form-group row">
 		    <label for="mem_phone" class="col-sm-2 col-form-label">휴대폰 번호</label>
 		    <div class="col-sm-4">
-		      <input type="text" class="form-control" id="mem_phone" name="mem_phone" placeholder=" ( - ) 를 제외하고 입력해주세요">
+		      <input type="text" class="form-control" id="mem_phone" name="mem_phone" placeholder=" ( - )를 제외하여 입력해주세요">
 		    </div>
 		  </div>
 		  <div class="form-group row">
@@ -163,6 +163,13 @@
 		$("#btnJoin").on("click", function(){
 
 			console.log("회원정보 저장하기");
+			
+			let kor = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/; // 한글체크
+
+			let num = /[0-9]/g;
+			let eng = /[a-z]/ig;
+			let spe = /[`~!@@#$%^&*|₩₩₩'₩";:₩/?]/gi;
+
 
 			//유효성 검사작업 해야 함.
 			// 폼입력양식 태그 데이타입력여부, 아이디, 비밀번호 제약조건
@@ -183,11 +190,10 @@
 			*/
 			
 			//비밀번호 유효성 검사 Start------------------------------
-	        // let mbr_pw = $("#mbr_pw").val();
-	        // let num = mbr_pw.search(/[0-9]/g);
-	        // let eng = mbr_pw.search(/[a-z]/ig);
-	        // let spe = mbr_pw.search(/[`~!@@#$%^&*|₩₩₩'₩";:₩/?]/gi);
 	        let mem_pw = $("#mem_pw").val();
+	        /*  let num = mem_pw.search(/[0-9]/g);
+	         let eng = mem_pw.search(/[a-z]/ig);
+	         let spe = mem_pw.search(/[`~!@@#$%^&*|₩₩₩'₩";:₩/?]/gi); */
 	        if(mem_pw.length < 8 || mem_pw.length > 15){
 	           alert("비밀번호는 8자리에서 15자리 이내로 입력해주세요.");
 	           $("#mem_pw").focus();
@@ -205,7 +211,7 @@
 	        }
 	        
 	        //비밀번호 확인 일치
-	        let pw_chck = $("#mem_pw_chck").val();
+	        let pw_chck = $("#mem_pw_2").val();
 	        let pw = $("#mem_pw").val();
 	        if(pw != pw_chck){
 	           alert("비밀번호 확인이 일치하지 않습니다.");
@@ -213,15 +219,51 @@
 	        }  
 	        //비밀번호 유효성 검사 End--------------------------------------
 	        
-	        if(!isIDCheck) {
+	         let mem_name = $("#mem_name").val();
+            //이름 입력 확인
+            if(mem_name == "") {
+               alert("이름을 입력하세요");
+               $("#mem_name").focus();
+               return;
+            }
+
+	        
+	        if(!isNickCheck) {
 				alert("닉네임 중복체크를 해야 합니다.");
 				return;
 			}
+	        
+	        if(!isAuthCode){
+	               alert("메일 인증확인을 해주세요")
+	               return;
+	        }
+	        
+	        
+	        
+                     
+            
+            
+            //주소 유효성검사 Start------------------------
+            let mem_addr = $('input[name=mem_addr]').val()
+            let mem_addr_d = $('input[name=mem_addr_d]').val()
+            if(mem_addr == "") {
+               alert("우편번호를 입력하세요");
+               return;
+            }
+            
+            if(mem_addr_d == "") {
+               alert("상세주소를 입력하세요");
+               $("#mem_addr_d").focus();
+               return;
+            }
+            //주소 유효성검사
 
 			joinForm.submit();
 		});
+		
 
-
+		let ismem_addr_d = false;
+		
 		let isIDCheck = false; // ID중복체크 사용여부
 
 		// ID중복체크
@@ -259,6 +301,8 @@
 		});
 		
 		
+		
+		let isNickCheck = false;
 		// 닉네임중복체크
 		$("#NickCheck").on("click", function(){
 
@@ -280,11 +324,11 @@
 					
 					if(result == "yes") {
 						$("#NickCheckStatus").html("<b>" + $("#mem_nick").val() + " 사용 가능 합니다</b>");
-						isIDCheck = true;
+						isNickCheck = true;
 					}else{
 						
 						$("#NickCheckStatus").html("<b>" + $("#mem_nick").val() + " 사용 불가능 합니다</b>");
-						isIDCheck = false;
+						isNickCheckk = false;
 					}
 				}
 			});
@@ -349,6 +393,7 @@
 			});
 		});
 
+		
 	});
 
 

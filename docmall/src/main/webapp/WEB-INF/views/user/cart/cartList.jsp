@@ -116,6 +116,8 @@
      				<button type="button" id="btnEmpty" class="btn btn-primary">장바구니 비우기</button>
      				<button type="button" class="btn btn-primary">계속 쇼핑하기</button>
      				<button type="button" id="btnOrder" class="btn btn-primary">주문하기</button>
+     				<input type="hidden" id="mem_id" name="mem_id" value="${loginStatus.mem_id}">
+     				
      			</div>
      		</div>
      	</div>
@@ -211,11 +213,33 @@
 			location.href = "/user/cart/cart_empty";
 		});
 		
+		
+		
+		
 		//주문하기 버튼클릭
 		$("#btnOrder").on("click", function() {
 			let type = "cartOrder";
-			location.href = "/user/order/orderListInfo?type=" + type;
+			
+			$.ajax({
+				url: '/user/order/orderCheck',
+				type: "get",
+				dataType: 'text',
+				data:{ mem_id : $("#mem_id").val()},
+				success : function(result){
+					
+					if(result == "no"){
+						alert("등록된 상품이 없습니다.");
+						return;
+					}
+					
+					
+					location.href = "/user/order/orderListInfo?type=" + type;
+
+				}
+			})
+			
 		});
+
 
 
     }); // ready이벤트 끝부분
