@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.docmall.mapper.ChartMapper">
+	
+	<select id="primaryChart" resultType="com.docmall.domain.ChartVO">
+	
+		SELECT 
+			C.CATE_NAME as primary_cd, SUM(OD.ODR_PRICE) AS sales_p
+    	FROM 
+    		PRODUCT_TBL P, ORDER_DETAIL_TBL OD, (SELECT C2.CATE_NAME, C1.CATE_CODE FROM CATEGORY_TBL C1, CATEGORY_TBL C2 WHERE C1.CATE_CODE_PRT = C2.CATE_CODE) C 
+    	WHERE 
+    		P.PDT_NUM = OD.PDT_NUM AND P.CATE_CODE = C.CATE_CODE
+   		GROUP 
+   			BY C.CATE_NAME
+    	ORDER 
+    		BY C.CATE_NAME
+	
+	</select>
+
+</mapper>

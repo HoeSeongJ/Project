@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.docmall.mapper.AdminMapper">
+
+	<select id="adminOk" parameterType="com.docmall.domain.AdminVO" resultType="com.docmall.domain.AdminVO">
+		
+		SELECT
+			ADMIN_ID, ADMIN_PW, ADMIN_NAME, ADMIN_DATE_LATE
+		FROM
+			ADMIN_TBL
+		WHERE 
+			ADMIN_ID = #{admin_id}
+		
+	</select>
+
+</mapper>

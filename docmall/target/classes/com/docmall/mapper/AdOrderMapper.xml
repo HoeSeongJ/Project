@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.docmall.mapper.AdOrderMapper">
+
+	<!-- 1)데이타(목록) : 페이징쿼리(인덱스힌트 구문) -->
+	<select id="getOrderList" parameterType="com.docmall.dto.Criteria" resultType="com.docmall.domain.OrderVO">
+		<![CDATA[
+		SELECT RN, ODR_CODE, MEM_ID, ODR_NAME, ODR_ZIPCODE, ODR_ADDR, ODR_ADDR_D, ODR_PHONE, ODR_TOTAL_PRICE, ODR_DATE, ODR_MESSAGE, ODR_STATUS, PAYMENT_STATUS, CS_STATUS
+		FROM (
+		    SELECT  /*+ INDEX_DESC(ORDER_TBL PK_ORDER_CODE)*/ ROWNUM RN, ODR_CODE, MEM_ID, ODR_NAME, ODR_ZIPCODE, ODR_ADDR, ODR_ADDR_D, ODR_PHONE, ODR_TOTAL_PRICE, ODR_DATE, ODR_MESSAGE, ODR_STATUS, PAYMENT_STATUS, CS_STATUS
+FROM ORDER_TBL
+		    WHERE  
+		]]>
+		
+		 <include refid="period"></include>    
+		 <include refid="criteria"></include> 
+		 
+		<![CDATA[ 
+		   
+		         ROWNUM <= #{cri.pageNum} * #{cri.amount}
+		)
+		WHERE RN > (#{cri.pageNum}-1) * #{cri.amount}
+		]]>
+	</select>
+	
+	<!-- 2)테이블 데이타개수 : 페이징구현사용 -->
+	<select id="getOrderTotalCount" parameterType="com.docmall.dto.Criteria" resultType="int">
+		SELECT count(*) FROM ORDER_TBL WHERE
+		
+		<include refid="period"></include> 
+		<include refid="criteria"></include> 
+		
+		ODR_CODE > 0
+		
+	</select>
+
+	<!-- 검색조건 쿼리. [제목 or 작성자]선택.  value="TW" -->
+	<!-- typeArr: 파라미터타입의 Criteria클래스의 메서드를 가리킴. 검색종류(타입)의 값을 참조하게 됨. [제목 or 작성자]선택.  value="TW"  -->
+	<sql id="criteria">
+		<trim prefix="(" suffix=") AND " prefixOverrides="OR">
+			<foreach collection="cri.typeArr" item="type">
+				<trim prefix="OR">
+					<choose>
+						<when test="type == 'O'.toString()">
+							ODR_CODE like '%' || #{cri.keyword} || '%'
+						</when>
+						<when test="type == 'M'.toString()">
+							MEM_ID like '%' || #{cri.keyword} || '%'
+						</when>
+					</choose>
+				</trim>
+			</foreach>
+		</trim>
+	</sql>
+	
+	<!-- 날짜조건검색 -->
+	<sql id="period">
+		
+		<if test="startDate != null and !startDate.equals('') and endDate != null and !endDate.equals('')">
+			
+			<![CDATA[
+			
+			ODR_DATE >= TO_DATE(#{startDate}, 'YYYY-MM-DD')
+			
+			AND
+			
+			ODR_DATE < TO_DATE(#{endDate}, 'YYYY-MM-DD') + 1
+			
+			AND
+			
+			]]>
+			
+		</if>
+		
+	</sql>
+	
+	
+	<update id="orderStatusChange">
+		
+		UPDATE
+			ORDER_TBL
+		SET
+			ODR_STATUS = #{odr_status}
+		WHERE
+			ODR_CODE = #{odr_code}
+	</update>
+	
+	<delete id="orderDelete">
+		
+		DELETE FROM
+			ORDER_TBL
+		WHERE
+			ODR_CODE = #{odr_code}
+	
+	</delete>
+	
+	<delete id="paymentDelete">
+		
+		DELETE FROM
+			PAYMENT_TBL
+		WHERE
+			ODR_CODE = #{odr_code}
+	
+	</delete>
+	
+	<delete id="orderListDelete">
+		<!--  파라미터로 List컬렉션을 사용할 때, mybatis구문에서는 foreach구문에서 collection="list" -->
+		DELETE FROM
+			ORDER_TBL
+		WHERE
+			ODR_CODE IN
+		<foreach collection="list" item="odr_code" open="(" close=")" separator=","> 
+			#{odr_code}
+		</foreach>
+	
+	</delete>
+	
+	<!-- 주문정보-->
+	<select id="getOrderInfo" resultType="com.docmall.domain.OrderVO">
+		
+		SELECT
+			ODR_CODE, 
+			MEM_ID, 
+			ODR_NAME, 
+			ODR_ZIPCODE, 
+			ODR_ADDR, 
+			ODR_ADDR_D, 
+			ODR_PHONE, 
+			ODR_TOTAL_PRICE, 
+			ODR_DATE, 
+			ODR_MESSAGE, 
+			ODR_STATUS, 
+			PAYMENT_STATUS, 
+			CS_STATUS
+			
+		FROM
+			ORDER_TBL
+			
+		WHERE
+			ODR_CODE = #{odr_code}
+	</select>
+	
+	<!-- 결제정보 -->
+	<select id="getPaymentInfo" resultType="com.docmall.domain.PaymentVO">
+	
+		SELECT
+		
+			PAY_CODE, 
+			ODR_CODE, 
+			PAY_METHOD, 
+			PAY_DATE, 
+			PAY_TOT_PRICE, 
+			PAY_REST_PRICE, 
+			PAY_NOBANK_PRICE, 
+			PAY_NOBANK_USER, 
+			PAY_NOBANK	
+			
+		FROM
+			PAYMENT_TBL
+			
+		WHERE
+			ODR_CODE = #{odr_code}
+	
+	</select>
+	
+	<!-- 주문상품정보 -->
+	<select id="getOrderProductInfo" parameterType="long" resultType="map">
+	
+		SELECT 
+			P.Pdt_Img_Folder, P.Pdt_Img, OT.ODR_CODE, OT.PDT_NUM,  P.PDT_DETAIL, P.PDT_NAME, OT.ODR_AMOUNT, P.PDT_PRICE * OT.ODR_AMOUNT AS ODR_UNIT_PRICE, O.ODR_STATUS
+		FROM 
+			ORDER_TBL O INNER JOIN ORDER_DETAIL_TBL OT
+		ON 
+			O.ODR_CODE = OT.ODR_CODE
+			INNER JOIN PRODUCT_TBL P
+		ON 
+			OT.PDT_NUM = P.PDT_NUM
+		WHERE 
+			O.ODR_CODE = #{odr_code}
+	
+	</select>
+	
+	<!-- 주문상품정보 : resultMap 사용 
+	<resultMap type="map" id="getOrderProductMap">
+		<result column="PDT_NAME" property="pName"/>
+		<result column="Pdt_Img" property="pImg"/>
+	
+	</resultMap>
+	
+	<select id="getOrderProductInfo" parameterType="long" resultMap="getOrderProductMap">
+	
+		SELECT 
+			P.Pdt_Img_Folder, P.Pdt_Img, P.PDT_DETAIL, P.PDT_NAME, OT.ODR_AMOUNT, P.PDT_PRICE * OT.ODR_AMOUNT AS ODR_UNIT_PRICE, O.ODR_STATUS
+		FROM 
+			ORDER_TBL O INNER JOIN ORDER_DETAIL_TBL OT
+		ON 
+			O.ODR_CODE = OT.ODR_CODE
+			INNER JOIN PRODUCT_TBL P
+		ON 
+			OT.PDT_NUM = P.PDT_NUM
+		WHERE 
+			O.ODR_CODE = #{odr_code}
+	
+	</select>
+	-->
+	
+	<!-- 주문상품 개별취소기능 -->
+	<delete id="orderDetailProductDelete">
+	
+		DELETE FROM
+			ORDER_DETAIL_TBL
+		WHERE
+			ODR_CODE = #{odr_code} AND PDT_NUM = #{pdt_num}
+			
+	</delete>
+	
+	<update id="orderTotalPriceChange">
+	
+		UPDATE 
+			ORDER_TBL
+		SET
+			ODR_TOTAL_PRICE = ODR_TOTAL_PRICE - #{unit_price}
+		WHERE
+			ODR_CODE = #{odr_code}
+	</update>
+	
+	<update id="paymentTotalPriceChange">
+	
+		UPDATE 
+			PAYMENT_TBL
+		SET
+			PAY_TOT_PRICE = PAY_TOT_PRICE - #{unit_price}
+		WHERE
+			ODR_CODE = #{odr_code}
+	
+	</update>
+	
+	<select id="getorderDetailProductCount" parameterType="long" resultType="int">
+		
+		SELECT
+			COUNT(*)
+		FROM
+			ORDER_DETAIL_TBL
+		WHERE
+			ODR_CODE = #{odr_code}
+		
+	</select>
+	
+	
+	
+	
+	
+	
+	
+	
+</mapper>

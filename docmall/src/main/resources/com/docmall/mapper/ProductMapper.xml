@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.docmall.mapper.ProductMapper">
+
+	<select id="getCateList" resultType="com.docmall.domain.CategoryVO">
+	
+		SELECT 
+			CATE_CODE, CATE_CODE_PRT, CATE_NAME
+		FROM 
+			CATEGORY_TBL
+		WHERE 
+			CATE_CODE_PRT IS NULL
+	
+	</select>
+	
+	<select id="getSubCateList" parameterType="int" resultType="com.docmall.domain.CategoryVO">
+	
+		SELECT 
+			CATE_CODE, CATE_CODE_PRT, CATE_NAME
+		FROM 
+			CATEGORY_TBL
+		WHERE 
+			CATE_CODE_PRT = #{categoryCode}
+	
+	</select>
+	
+	<insert id="productInsert" parameterType="com.docmall.domain.ProductVO">
+	
+		INSERT INTO PRODUCT_TBL
+			(PDT_NUM, CATE_CODE, CATE_CODE_PRT, PDT_NAME, PDT_PRICE, PDT_DISCOUNT, PDT_COMPANY, PDT_DETAIL, PDT_IMG_FOLDER, PDT_IMG, PDT_AMOUNT, PDT_BUY)
+		VALUES
+			(SEQ_PRODUCT_NUM.NEXTVAL, #{cate_code}, #{cate_code_prt}, #{pdt_name}, #{pdt_price}, #{pdt_discount}, #{pdt_company}, #{pdt_detail}, #{pdt_img_folder}, #{pdt_img}, #{pdt_amount}, #{pdt_buy})
+	
+	</insert>
+	
+	<!-- 검색조건 쿼리. [제목 or 작성자]선택.  value="TW" -->
+	<!-- typeArr: 파라미터타입의 Criteria클래스의 메서드를 가리킴. 검색종류(타입)의 값을 참조하게 됨. [제목 or 작성자]선택.  value="TW"  -->
+	<sql id="criteria">
+		<trim prefix="(" suffix=") AND " prefixOverrides="OR">
+			<foreach collection="typeArr" item="type">
+				<trim prefix="OR">
+					<choose>
+						<when test="type == 'N'.toString()">
+							PDT_NAME like '%' || #{keyword} || '%'
+						</when>
+						<when test="type == 'C'.toString()">
+							PDT_COMPANY like '%' || #{keyword} || '%'
+						</when>
+					</choose>
+				</trim>
+			</foreach>
+		</trim>
+	</sql>
+	
+	<!-- 1)데이타(목록) : 페이징쿼리(인덱스힌트 구문) -->
+	<select id="getProductList" parameterType="com.docmall.dto.Criteria" resultType="com.docmall.domain.ProductVO">
+		<![CDATA[
+		SELECT RN, PDT_NUM, CATE_CODE, CATE_CODE_PRT, PDT_NAME, PDT_PRICE, PDT_DISCOUNT, PDT_COMPANY, PDT_DETAIL, PDT_IMG_FOLDER, PDT_IMG, PDT_AMOUNT, PDT_BUY, PDT_DATE_SUB, PDT_DATE_UP
+		FROM (
+		    SELECT  /*+ INDEX_DESC(PRODUCT_TBL PK_PRODUCT_NUM)*/ ROWNUM RN, PDT_NUM, CATE_CODE, CATE_CODE_PRT, PDT_NAME, PDT_PRICE, PDT_DISCOUNT, PDT_COMPANY, PDT_DETAIL, PDT_IMG_FOLDER, PDT_IMG, PDT_AMOUNT, PDT_BUY, PDT_DATE_SUB, PDT_DATE_UP
+FROM PRODUCT_TBL
+		    WHERE  
+		]]>    
+		 <include refid="criteria"></include> 
+		 
+		<![CDATA[ 
+		   
+		         ROWNUM <= #{pageNum} * #{amount}
+		)
+		WHERE RN > (#{pageNum}-1) * #{amount}
+		]]>
+	</select>
+	
+	<!-- 2)테이블 데이타개수 : 페이징구현사용 -->
+	<select id="getProductTotalCount" parameterType="com.docmall.dto.Criteria" resultType="int">
+		SELECT count(*) FROM PRODUCT_TBL WHERE
+		
+		<include refid="criteria"></include> 
+		
+		PDT_NUM > 0
+		
+	</select>
+	
+	<select id="getProductByNum" parameterType="int" resultType="com.docmall.domain.ProductVO">
+	
+		SELECT 
+			PDT_NUM, CATE_CODE, CATE_CODE_PRT, PDT_NAME, PDT_PRICE, PDT_DISCOUNT, PDT_COMPANY, PDT_DETAIL, PDT_IMG_FOLDER, PDT_IMG, PDT_AMOUNT, PDT_BUY, PDT_DATE_SUB, PDT_DATE_UP
+		FROM
+			PRODUCT_TBL
+		WHERE
+			PDT_NUM = #{pdt_num}
+	
+	</select>
+	
+	
+	<update id="productModify" parameterType="com.docmall.domain.ProductVO">
+	
+		UPDATE
+			PRODUCT_TBL
+		SET
+			CATE_CODE = #{cate_code}, 
+			CATE_CODE_PRT = #{cate_code_prt}, 
+			PDT_NAME = #{pdt_name}, 
+			PDT_PRICE = #{pdt_price}, 
+			PDT_DISCOUNT = #{pdt_discount}, 
+			PDT_COMPANY = #{pdt_company}, 
+			PDT_DETAIL = #{pdt_detail}, 
+			PDT_IMG_FOLDER = #{pdt_img_folder}, 
+			PDT_IMG = #{pdt_img}, 
+			PDT_AMOUNT = #{pdt_amount}, 
+			PDT_BUY = #{pdt_buy}, 
+			PDT_DATE_UP = SYSDATE
+		WHERE
+			PDT_NUM = #{pdt_num}
+	
+	</update>
+	
+	<delete id="productDelete" parameterType="int">
+	
+		DELETE FROM
+			PRODUCT_TBL
+		WHERE
+			PDT_NUM = #{pdt_num}
+	
+	</delete>
+	
+
+</mapper>

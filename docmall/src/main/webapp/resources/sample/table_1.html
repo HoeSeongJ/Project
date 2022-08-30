@@ -1,0 +1,153 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <script src="../jQuery/src/jquery-3.3.1.min.js"></script>
+    <script>
+
+        $(function () {
+
+            /*
+            $("#list_table") : 테이블태그중에서 ".delete-link" 선택자에 해당하는 것을
+            click 이벤트 설정하라.
+            동적으로 추가된 정보가 메모리상에서 업데이트가되어 삭제가 가능
+            */
+            $("#list_table").on("click", ".delete-link", function () {
+                $(this).parent().parent().remove();
+            });
+            
+
+            //삭제 구문.
+            /*
+              테이블 수준에서 참조하는 것이 아니라 tr수준의 .delete-link 선택자를 참조
+              동적으로 추가된 정보가 메모리상에 업데이트가 되지않아 삭제가 불가능.
+            */ 
+            /*
+            $(".delete-link").on("click", function () {
+                alert();
+                $(this).parent().parent().remove();
+                //$(".delete-link").parent().parent().remove(); // 3개가 모두 삭제됨
+
+                
+            });
+            */
+
+            //데이터추가 버튼에 click이벤트 설정
+            $("#append_row").on("click", function () {
+                $("#list_table").append(
+                    $("<tr></tr>").append(
+                        $("<td></td>").append($("#add_no").val()),
+                        $("<td></td>").append($("#add_name").val()),
+                        $("<td></td>").append($("#add_birth").val()),
+                        $("<td></td>").append(
+                            //$("<a></a>").prop("href", "#").prop("class","delete-link").append("Delete")
+                            //$('<a>').prop('href', '#').addClass('delete-link').append('Delete')
+                            
+                            $("<a></a>").prop({
+                                "href": "#",
+                                "class": "delete-link"
+                            }).append("Delete")
+                            
+                        )
+
+                    )
+                );
+
+                clsInput();
+
+            });
+
+        });
+
+
+        function clsInput() {
+
+            //텍스트박스 초기화(clear)
+            $("#add_no").val("");
+            $("#add_name").val("");
+            $("#add_birth").val("");
+        }
+
+    </script>
+    <style>
+        table, th, td {
+            border:1px solid black;
+        }
+
+        table {
+            border-collapse:collapse;
+        }
+    </style>
+</head>
+<body>
+    <table id="list_table">
+
+        <colgroup>
+            <col style="width:50px;"/>
+            <col style="width:80px;"/>
+            <col style="width:80px;"/>
+            <col style="width:100px;"/>
+            
+        </colgroup>
+
+        <thead>
+            <tr>
+                <th>No</th>
+                <th>Name</th>
+                <th>Birth</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1</td>
+                <td>park</td>
+                <td>930917</td>
+                <td><a href="#" class="delete-link">Delete</a></td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>kim</td>
+                <td>961117</td>
+                <td><a href="#" class="delete-link">Delete</a></td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>lee</td>
+                <td>900321</td>
+                <td><a href="#" class="delete-link">Delete</a></td>
+            </tr>
+        </tbody>
+
+    </table>
+
+    <h3>추가 입력 테이블</h3>
+
+    <table id="append_table">
+        <colgroup>
+            <col style="width:10%;"/>
+            <col style="width:30%;"/>
+            <col style="width:30%;"/>
+            <col style="width:30%;"/>
+        </colgroup>
+        <thead>
+            <tr>
+                <th>No</th>
+                <th>Name</th>
+                <th>Birth</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><input type="text" id="add_no" /></td>
+                <td><input type="text" id="add_name" /></td>
+                <td><input type="text" id="add_birth" /></td>
+                <td><button type="button" id="append_row">데이터 추가</button></td>
+            </tr>
+        </tbody>
+    </table>
+
+</body>
+</html>

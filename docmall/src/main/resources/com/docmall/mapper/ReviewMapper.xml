@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.docmall.mapper.ReviewMapper">
+
+	<insert id="create" parameterType="com.docmall.domain.ReviewVO">
+	
+		INSERT INTO
+			REVIEW_TBL(RV_NUM, MEM_ID, PDT_NUM, RV_CONTENT, RV_SCORE)
+		VALUES
+			(SEQ_REVIEW_NUM.NEXTVAL, #{mem_id}, #{pdt_num}, #{rv_content}, #{rv_score})
+	
+	</insert>
+	
+	<select id="list" resultType="com.docmall.domain.ReviewVO">
+	
+		<!-- 인덱스힌트를 이용한 페이징쿼리 -->
+		<![CDATA[ 
+		SELECT RN, RV_NUM, MEM_ID, PDT_NUM, RV_CONTENT, RV_SCORE, RV_DATE_REG
+		FROM (
+		    SELECT  /*+ INDEX_DESC(REVIEW_TBL PK_REVIEW_NUM)*/ ROWNUM RN, RV_NUM, MEM_ID, PDT_NUM, RV_CONTENT, RV_SCORE, RV_DATE_REG FROM REVIEW_TBL
+		    WHERE  PDT_NUM = #{pdt_num} AND ROWNUM <= (#{cri.pageNum} * #{cri.amount})
+		)
+		WHERE RN > ((#{cri.pageNum}-1) * #{cri.amount})
+		]]>
+		
+	</select>
+	
+	<select id="listCount" parameterType="int" resultType="int">
+	
+		SELECT 
+			COUNT(*) 
+		FROM 
+			REVIEW_TBL
+		WHERE 
+			PDT_NUM = #{pdt_num}
+			
+	</select>
+	
+	<update id="modify">
+	
+		UPDATE
+			REVIEW_TBL
+		SET
+			RV_CONTENT = #{rv_content}, RV_SCORE = #{rv_score}, rv_date_reg = SYSDATE
+		WHERE
+			RV_NUM = #{rv_num}
+	
+	</update>
+	
+	<delete id="delete">
+	
+		DELETE FROM
+			REVIEW_TBL	
+		WHERE
+			RV_NUM = #{rv_num}
+			
+	</delete>
+	
+
+</mapper>

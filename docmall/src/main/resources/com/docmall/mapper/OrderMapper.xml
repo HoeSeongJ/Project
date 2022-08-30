@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.docmall.mapper.OrderMapper">
+
+	<select id="cartOrderList" parameterType="string" resultType="com.docmall.domain.CartOrderInfo">
+	
+		SELECT 
+			C.PDT_NUM, C.MEM_ID, C.CART_AMOUNT, P.PDT_NAME, P.PDT_PRICE, P.PDT_DISCOUNT, P.PDT_COMPANY, P.PDT_IMG_FOLDER, P.PDT_IMG
+		FROM 
+			CART_TBL C INNER JOIN PRODUCT_TBL P
+		ON 
+			C.PDT_NUM = P.PDT_NUM
+		WHERE 
+			C.MEM_ID = #{mem_id}
+	
+	</select>
+	
+	<select id="directOrderList" resultType="com.docmall.domain.CartOrderInfo">
+	
+		SELECT 
+			PDT_NUM, PDT_NAME, PDT_IMG_FOLDER, PDT_IMG, PDT_PRICE, #{odr_amount} as CART_AMOUNT, PDT_DISCOUNT, PDT_COMPANY
+		FROM 
+			PRODUCT_TBL			
+		WHERE 
+			PDT_NUM = #{pdt_num}
+	
+	</select>
+	
+	<insert id="orderSave" parameterType="com.docmall.domain.OrderVO">
+		
+		<selectKey keyProperty="odr_code" order="BEFORE" resultType="long">
+			select SEQ_ORDER_CODE.nextval from dual
+		</selectKey>
+		
+		INSERT INTO ORDER_TBL
+			(ODR_CODE, MEM_ID, ODR_NAME, ODR_ZIPCODE, ODR_ADDR, ODR_ADDR_D, ODR_PHONE, ODR_TOTAL_PRICE, ODR_MESSAGE, PAYMENT_STATUS)
+		VALUES
+			(#{odr_code}, #{mem_id}, #{odr_name}, #{odr_zipcode}, #{odr_addr}, #{odr_addr_d}, #{odr_phone}, #{odr_total_price}, #{odr_message}, #{payment_status})
+			
+	</insert>
+	
+	<insert id="orderDetailSave">
+		
+		INSERT INTO
+			 ORDER_DETAIL_TBL(ODR_CODE, PDT_NUM, ODR_AMOUNT, ODR_PRICE)
+		SELECT 
+			#{odr_code}, C.PDT_NUM, C.CART_AMOUNT, C.CART_AMOUNT * P.PDT_PRICE
+		FROM 
+			CART_TBL C INNER JOIN PRODUCT_TBL P
+		ON 
+			C.PDT_NUM = P.PDT_NUM
+		WHERE 
+			MEM_ID = #{mem_id}
+		
+	</insert>
+	
+	<insert id="paymentSave" parameterType="com.docmall.domain.PaymentVO">
+	
+		INSERT INTO PAYMENT_TBL
+			(PAY_CODE, ODR_CODE, PAY_METHOD, PAY_DATE, PAY_TOT_PRICE, PAY_REST_PRICE 
+				<if test="pay_nobank_user != null and !pay_nobank_user.equals('')">
+					, PAY_NOBANK_PRICE, PAY_NOBANK_USER, PAY_NOBANK
+				</if>
+			)
+		VALUES
+			(SEQ_PAYMENT_CODE.NEXTVAL, #{odr_code}, #{pay_method}, SYSDATE, #{pay_tot_price}, #{pay_rest_price}
+				<if test="pay_nobank_user != null and !pay_nobank_user.equals('')">
+					, #{pay_nobank_price}, #{pay_nobank_user}, #{pay_nobank}
+				</if>
+	         )
+	</insert>
+
+</mapper>

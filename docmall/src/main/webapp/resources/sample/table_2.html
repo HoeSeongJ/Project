@@ -1,0 +1,42 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <script src="//code.jquery.com/jquery.min.js"></script>
+    <script>
+        $(function () {
+            $('#btn-add-row').click(function () {
+                var time = new Date().toLocaleTimeString();
+                $('#mytable > tbody:last').append('<tr><td>안녕 친구들 </td><td><input type="text" name="code"></td><td>' + time + '<input type="button" name="makecode" value="코드생성"></td></tr>');
+            });
+            $('#btn-delete-row').click(function () {
+                $('#mytable > tbody:last > tr:last').remove();
+            });
+
+            // 팝업띄우기.
+
+            $('#mytable').on("click", "input[name='makecode']", function(){
+                console.log("팝업" + $(this).parent().parent().index());
+            });
+        });
+        
+    </script>
+</head>
+<body>
+    <button id='btn-add-row'>행 추가하기</button>
+    <button id='btn-delete-row'>행 삭제하기</button>
+    <hr>
+
+    <table id="mytable" border="1" cellspacing="3">
+        <tr>
+            <th>제목</th>
+            <th>코드</th>
+            <th>일시</th>            
+        </tr>
+        <tbody></tbody>
+    </table>
+
+    
+</body>
+</html>
